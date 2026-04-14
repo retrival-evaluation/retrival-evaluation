@@ -9,6 +9,14 @@ def recall_at_k(results, qrels, k=10):
     hits = len(top_k_results & qrels)
     return hits / len(qrels)
 
+def mrr(results, qrels):
+    qrels = set(qrels)
+
+    for rank, doc_id in enumerate(results, start=1):
+        if doc_id in qrels:
+            return 1 /rank
+        
+        return 0.0
 
 if __name__ == "__main__":
     print(recall_at_k(
