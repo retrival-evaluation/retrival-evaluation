@@ -2,21 +2,42 @@ from pathlib import Path
 import lancedb
 import pandas as pd
 
-DATA_DIR = Path(__file__).parent.parent.parent / "data/raw/scifact"
+# Base directory for all datasets
+BASE_DATA_DIR = Path(__file__).parent.parent.parent / "data" / "raw"
 
 
-def load_corpus():
-    return pd.read_json(DATA_DIR / "corpus.jsonl", lines=True)
-
-def load_queries():
-    return pd.read_json(DATA_DIR / "queries.jsonl", lines=True)
-
-def load_qrels():
-    return pd.read_csv(DATA_DIR / "qrels/test.tsv", sep="\t")
+def get_dataset_dir(dataset: str):
+    return BASE_DATA_DIR / dataset
 
 
-def create_corpus_table():
-    corpus = load_corpus()
-    db = lancedb.connect(DATA_DIR.parent.parent/"lancedb")
-    table = db.create_table("corpus", corpus)
+def load_corpus(dataset):
+    dataset_dir = get_dataset_dir(dataset)
+    return pd.read_json(dataset_dir / "corpus.jsonl", lines=True)
+
+
+def load_queries(dataset):
+    dataset_dir = get_dataset_dir(dataset)
+    return pd.read_json(dataset_dir / "queries.jsonl", lines=True)
+
+
+def load_qrels(dataset):
+    dataset_dir = get_dataset_dir(dataset)
+    return pd.read_csv(dataset_dir / "qrels" / "test.tsv", sep="\t")
+
+
+def create_corpus_table(dataset):
+    corpus = load_corpus(dataset)
+
+    db_path = BASE_DATA_DIR.parent / "lancedb"
+
+    db = lancedb.connect(db_path)
+
+    table_name = f"{dataset}_corpus"
+
+    table = db.create_table(
+        table_name,
+        corpus,
+        mode="overwrite"
+    )
+
     return table
